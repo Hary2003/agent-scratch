@@ -21,6 +21,7 @@ class Message(BaseModel):
 class ToolParameter(BaseModel):
     type: str
     description: str
+    enum: Optional[List[Any]] = None
 
 
 # --------------------------------------------------
@@ -49,8 +50,13 @@ class Tool(BaseModel):
                     "description": param.description
                 }
                 for name, param in self.parameters.items()
-            }
+            },
+            "additionalProperties": False
         }
+        for name, param in self.parameters.items():
+            if param.enum:
+                parameters["properties"][name]["enum"] = param.enum
+
         if self.required:
             parameters["required"] = self.required
 

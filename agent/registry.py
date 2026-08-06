@@ -7,6 +7,11 @@ class ToolRegistry:
         self.tools = {}
 
     def register(self, tool: Tool, function):
+        if tool.name in self.tools:
+            raise ValueError(f"Tool '{tool.name}' is already registered.")
+        if not callable(function):
+            raise ValueError(f"Tool '{tool.name}' function must be callable.")
+
         self.tools[tool.name] = {
             "tool": tool,
             "function": function

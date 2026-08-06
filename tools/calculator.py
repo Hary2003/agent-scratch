@@ -23,7 +23,8 @@ calculator_tool = Tool(
     parameters={
         "operation": ToolParameter(
             type="string",
-            description="Operation to perform: 'add', 'subtract', 'multiply', or 'divide'."
+            description="Operation to perform.",
+            enum=["add", "subtract", "multiply", "divide"]
         ),
         "a": ToolParameter(
             type="number",

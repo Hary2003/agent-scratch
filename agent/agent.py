@@ -85,13 +85,18 @@ class Agent:
                 raw_args = tool_call.function.arguments or "{}"
                 try:
                     args = json.loads(raw_args)
-                except Exception:
-                    try:
-                        args = eval(raw_args)
-                    except Exception:
-                        args = {}
+                except json.JSONDecodeError:
+                    args = {
+                        "_parse_error": (
+                            "Tool arguments must be valid JSON."
+                        )
+                    }
                 if not isinstance(args, dict):
-                    args = {}
+                    args = {
+                        "_parse_error": (
+                            "Tool arguments must be a JSON object."
+                        )
+                    }
 
                 tool_request = ToolCall(
                     id=tool_call.id,
