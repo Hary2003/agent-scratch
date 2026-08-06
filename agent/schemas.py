@@ -41,22 +41,25 @@ class Tool(BaseModel):
         arbitrary_types_allowed = True
 
     def to_openai_tool(self) -> Dict[str, Any]:
+        parameters: Dict[str, Any] = {
+            "type": "object",
+            "properties": {
+                name: {
+                    "type": param.type,
+                    "description": param.description
+                }
+                for name, param in self.parameters.items()
+            }
+        }
+        if self.required:
+            parameters["required"] = self.required
+
         return {
             "type": "function",
             "function": {
                 "name": self.name,
                 "description": self.description,
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        name: {
-                            "type": param.type,
-                            "description": param.description
-                        }
-                        for name, param in self.parameters.items()
-                    },
-                    "required": self.required
-                }
+                "parameters": parameters
             }
         }
 

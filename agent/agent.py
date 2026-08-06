@@ -55,33 +55,32 @@ class Agent:
             ]
             self.memory.add_assistant(content=message.content, tool_calls=tool_calls_data)
 
-            tool_call = message.tool_calls[0]
-
-            raw_args = tool_call.function.arguments or "{}"
-            try:
-                args = json.loads(raw_args)
-            except Exception:
+            for tool_call in message.tool_calls:
+                raw_args = tool_call.function.arguments or "{}"
                 try:
-                    args = eval(raw_args)
+                    args = json.loads(raw_args)
                 except Exception:
+                    try:
+                        args = eval(raw_args)
+                    except Exception:
+                        args = {}
+                if not isinstance(args, dict):
                     args = {}
-            if not isinstance(args, dict):
-                args = {}
 
-            tool_request = ToolCall(
-                id=tool_call.id,
-                name=tool_call.function.name,
-                arguments=args
-            )
+                tool_request = ToolCall(
+                    id=tool_call.id,
+                    name=tool_call.function.name,
+                    arguments=args
+                )
 
-            tool_result = self.executor.execute(
-                tool_request
-            )
+                tool_result = self.executor.execute(
+                    tool_request
+                )
 
-            self.memory.add_tool(
-                tool_result.tool_call_id,
-                str(tool_result.output)
-            )
+                self.memory.add_tool(
+                    tool_result.tool_call_id,
+                    str(tool_result.output)
+                )
 
             response = self.llm.chat(
                 self.memory.to_openai_messages(),

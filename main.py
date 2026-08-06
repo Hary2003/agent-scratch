@@ -8,6 +8,7 @@ from agent.agent import Agent
 
 from tools.calculator import calculator, calculator_tool
 from tools.current_time import get_current_time, time_tool
+from tools.weather import weather, weather_tool
 
 
 def main():
@@ -17,6 +18,7 @@ def main():
     registry = ToolRegistry()
     registry.register(calculator_tool, calculator)
     registry.register(time_tool, get_current_time)
+    registry.register(weather_tool, weather)
 
     llm = LLMClient()
 
