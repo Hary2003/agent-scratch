@@ -5,6 +5,7 @@ from agent.registry import ToolRegistry
 from agent.executor import ToolExecutor
 from agent.llm import LLMClient
 from agent.agent import Agent
+from agent.planner import Planner
 
 from tools.calculator import calculator, calculator_tool
 from tools.current_time import get_current_time, time_tool
@@ -21,6 +22,7 @@ def main():
     registry.register(weather_tool, weather)
 
     llm = LLMClient()
+    planner = Planner(llm)
 
     executor = ToolExecutor(registry)
 
@@ -29,6 +31,7 @@ def main():
         memory=memory,
         registry=registry,
         executor=executor,
+        planner=planner,
     )
 
     print("=" * 50)

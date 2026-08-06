@@ -9,17 +9,35 @@ class Agent:
         llm,
         memory,
         registry,
-        executor
+        executor,
+        planner=None
     ):
 
         self.llm = llm
         self.memory = memory
         self.registry = registry
         self.executor = executor
+        self.planner = planner
 
         self.memory.add_system(
             "You are a helpful AI assistant."
         )
+
+    def _messages_with_plan(self, plan: str):
+        messages = self.memory.to_openai_messages()
+        if plan:
+            plan_message = {
+                "role": "system",
+                "content": (
+                    "Use this internal plan to guide the next response. "
+                    "Do not mention the plan unless the user asks for it.\n\n"
+                    f"{plan}"
+                )
+            }
+            insert_at = 1 if messages and messages[0]["role"] == "system" else 0
+            messages.insert(insert_at, plan_message)
+
+        return messages
 
     def run(self, user_message: str):
 
@@ -33,14 +51,22 @@ class Agent:
         tools = self.registry.list_tools()
 
         # Step 4
+        plan = None
+        if self.planner:
+            plan = self.planner.create_plan(
+                messages,
+                tools
+            )
+
+        # Step 5
         response = self.llm.chat(
-            messages,
+            self._messages_with_plan(plan),
             tools
         )
 
         message = response.choices[0].message
 
-        # Step 5
+        # Step 6
         while message.tool_calls:
             tool_calls_data = [
                 {
@@ -83,13 +109,13 @@ class Agent:
                 )
 
             response = self.llm.chat(
-                self.memory.to_openai_messages(),
+                self._messages_with_plan(plan),
                 tools
             )
 
             message = response.choices[0].message
 
-        # Step 6
+        # Step 7
         self.memory.add_assistant(
             message.content
         )
